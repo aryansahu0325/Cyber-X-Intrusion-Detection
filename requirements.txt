@@ -16,3 +16,4 @@ fpdf
 streamlit-autorefresh
 plotly
 networkx
+pyvis
