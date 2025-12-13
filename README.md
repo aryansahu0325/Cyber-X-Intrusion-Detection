@@ -90,7 +90,7 @@ Dataset link (Google Drive):
 
 ## 🖥️ Streamlit App (Live Intrusion Detection)
 
-Run the dashboard:
+Run the dashboard: https://cyber-x-intrusion-detection-aryan-sahu.streamlit.app/
 
 streamlit run app.py
 Features:
