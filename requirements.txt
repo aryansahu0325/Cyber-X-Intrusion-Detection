@@ -14,3 +14,4 @@ uvicorn
 fastapi
 fpdf
 streamlit-autorefresh
+plotly
