@@ -220,44 +220,53 @@ elif page == "📤 Upload & Predict":
 
     if file:
         df = pd.read_csv(file)
-        df = df.drop(columns=["label", "Label"], errors="ignore")
+
+        # Remove label columns
+        df = df.drop(columns=["label", "Label", "attack", "class", "target"], errors="ignore")
+
+        # Keep numeric data only
+        df = df.select_dtypes(include=["number"])
+        df = df.fillna(0)
 
         try:
-            # NSL dataset (41 features)
-            if len(df.columns) == 41:
+            feature_count = df.shape[1]
+
+            # ========== NSL-KDD ==========
+            if feature_count <= 45:
                 st.info("Detected NSL-KDD Dataset")
 
-                X = df.fillna(0)
+                nsl_features = joblib.load("models/nsl_features.pkl")
+                X = df.reindex(columns=nsl_features, fill_value=0)
+
                 pred_enc = NSL_MODEL.predict(X)
                 pred = NSL_ENCODER.inverse_transform(pred_enc)
 
                 df["prediction"] = pred
+                st.success("NSL-KDD Prediction Successful ✅")
                 st.dataframe(df.head())
-
                 df.to_csv(PRED_FILE, index=False)
-                st.success("Predictions Saved!")
 
-            # CICIDS dataset
-            elif len(df.columns) >= 70:
-                FEATURES = joblib.load(CIC_FEATURE_PATH)
+            # ========== CICIDS ==========
+            elif feature_count > 45:
+                st.info("Detected CICIDS Dataset")
 
-                for f in FEATURES:
-                    if f not in df.columns:
-                        df[f] = 0
+                cic_features = joblib.load("models/cic_features.pkl")
+                X = df.reindex(columns=cic_features, fill_value=0)
 
-                df = df[FEATURES]
-                pred = CIC_MODEL.predict(df)
-
+                pred = CIC_MODEL.predict(X)
                 df["prediction"] = pred
+
+                st.success("CICIDS Prediction Successful ✅")
                 st.dataframe(df.head())
                 df.to_csv(PRED_FILE, index=False)
-                st.success("CICIDS Predictions Saved!")
 
             else:
                 st.error("Unknown dataset format")
 
         except Exception as e:
             st.error(f"Prediction Error: {e}")
+
+
 # ============================================================
 # CICIDS ATTACK PAGE
 # ============================================================
