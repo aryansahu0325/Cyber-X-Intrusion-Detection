@@ -72,7 +72,7 @@ We used two industry-standard security datasets:
 - Used for classical ML evaluation  
 
 Dataset link (Google Drive):  
-👉 (https://drive.google.com/drive/folders/1syIrfBupLrgAHISp9V7nZKMzd-rVg5z5?usp=sharing)
+👉 https://drive.google.com/drive/folders/1syIrfBupLrgAHISp9V7nZKMzd-rVg5z5?usp=sharing
 
 ---
 
