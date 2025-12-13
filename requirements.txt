@@ -13,3 +13,4 @@ scapy
 uvicorn
 fastapi
 fpdf
+streamlit-autorefresh
