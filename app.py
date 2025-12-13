@@ -61,14 +61,20 @@ st.set_page_config(page_title="Cyber-X IDS Dashboard",
                    page_icon="🛡️", layout="wide")
 
 BASE = os.path.dirname(os.path.abspath(__file__))
-ART = os.path.join(BASE, "artifacts")
 
-NSL_MODEL_PATH = os.path.join(ART, "nslkdd_grouped_model.pkl")
+ART = os.path.join(BASE, "artifacts")
+MODELS = os.path.join(BASE, "models")
+
+# ===== NSL-KDD =====
+NSL_MODEL_PATH = os.path.join(MODELS, "nslkdd_model.pkl")
+NSL_FEATURE_PATH = os.path.join(MODELS, "nsl_features.pkl")
 NSL_ENCODER_PATH = os.path.join(ART, "nsl_label_encoder.pkl")
 
-CIC_MODEL_PATH = os.path.join(ART, "cicids_model.pkl")
-CIC_FEATURE_PATH = os.path.join(ART, "cic_features.pkl")
+# ===== CICIDS =====
+CIC_MODEL_PATH = os.path.join(MODELS, "cicids_model.pkl")
+CIC_FEATURE_PATH = os.path.join(MODELS, "cic_features.pkl")
 
+# ===== DATA FILES =====
 NSL_TEST_PATH = os.path.join(ART, "nslkdd_test.csv")
 CIC_TEST_PATH = os.path.join(ART, "cicids_sample_test.csv")
 
@@ -146,28 +152,30 @@ if page == "🏠 Home":
         # Group labels
         y_true = y_true_raw.apply(map_nsl_label)
 
-        # Encode labels
-        y_encoded = NSL_ENCODER.transform(y_true)
-
         # Features
         X = df.fillna(0)
 
-        # Predict
-        pred_encoded = NSL_MODEL.predict(X)
-        pred = NSL_ENCODER.inverse_transform(pred_encoded)
+        # Predict (model already outputs encoded labels)
+        pred = NSL_MODEL.predict(X)
 
-        # Accuracy
+# Accuracy
         acc = accuracy_score(y_true, pred)
         st.metric("NSL-KDD Accuracy", f"{acc * 100:.2f}%")
 
-        # Compact Confusion Matrix
-        fig, ax = plt.subplots(figsize=(2, 2))
-        sns.heatmap(confusion_matrix(y_true, pred), cmap="Blues", cbar=False)
+# Confusion Matrix
+        fig, ax = plt.subplots(figsize=(3, 3))
+        sns.heatmap(
+            confusion_matrix(y_true, pred), 
+            cmap="Blues", 
+            cbar=False,
+            ax=ax
+            )
         plt.tight_layout()
-        st.pyplot(fig, use_container_width=False)
+        st.pyplot(fig,use_container_width=False)
 
         with st.expander("📄 Classification Report"):
             st.text(classification_report(y_true, pred))
+
 
     except Exception as e:
         st.error(f"NSL Evaluation Error: {e}")
@@ -213,6 +221,9 @@ if page == "🏠 Home":
 # ============================================================
 # UPLOAD & PREDICT
 # ============================================================
+# ============================================================
+# UPLOAD & PREDICT
+# ============================================================
 elif page == "📤 Upload & Predict":
 
     st.title("📤 Upload & Predict")
@@ -221,8 +232,11 @@ elif page == "📤 Upload & Predict":
     if file:
         df = pd.read_csv(file)
 
-        # Remove label columns
-        df = df.drop(columns=["label", "Label", "attack", "class", "target"], errors="ignore")
+        # Remove label columns if present
+        df = df.drop(
+            columns=["label", "Label", "attack", "class", "target"],
+            errors="ignore"
+        )
 
         # Keep numeric data only
         df = df.select_dtypes(include=["number"])
@@ -235,11 +249,11 @@ elif page == "📤 Upload & Predict":
             if feature_count <= 45:
                 st.info("Detected NSL-KDD Dataset")
 
-                nsl_features = joblib.load("models/nsl_features.pkl")
+                nsl_features = joblib.load(NSL_FEATURE_PATH)
                 X = df.reindex(columns=nsl_features, fill_value=0)
 
-                pred_enc = NSL_MODEL.predict(X)
-                pred = NSL_ENCODER.inverse_transform(pred_enc)
+                # ✅ Model predicts directly
+                pred = NSL_MODEL.predict(X)
 
                 df["prediction"] = pred
                 st.success("NSL-KDD Prediction Successful ✅")
@@ -250,7 +264,7 @@ elif page == "📤 Upload & Predict":
             elif feature_count > 45:
                 st.info("Detected CICIDS Dataset")
 
-                cic_features = joblib.load("models/cic_features.pkl")
+                cic_features = joblib.load(CIC_FEATURE_PATH)
                 X = df.reindex(columns=cic_features, fill_value=0)
 
                 pred = CIC_MODEL.predict(X)
@@ -265,6 +279,7 @@ elif page == "📤 Upload & Predict":
 
         except Exception as e:
             st.error(f"Prediction Error: {e}")
+                
 
 
 # ============================================================
@@ -290,17 +305,27 @@ elif page == "🛡️ CICIDS Attack":
 # REAL-TIME MONITOR
 # ============================================================
 elif page == "📡 Real-Time Monitor":
-    st.title("📡 Live Packet Sniffer")
-    st.warning("Run this command:\n`py -3.10 src/realtime_sniffer.py`")
 
-    st_autorefresh(interval=2500)
+    st.title("📡 Real-Time Network Monitoring")
 
-    if os.path.exists(REALTIME_LOG):
-        logs = pd.read_csv(REALTIME_LOG)
-        st.dataframe(logs.tail(20))
+    st.info("Simulated real-time monitoring using live packet logs")
 
-        attack_count = (logs["prediction"] != "normal").sum()
-        draw_attack_gauge(attack_count, len(logs))
+    # Auto refresh every 2 seconds
+    st_autorefresh(interval=2000, key="realtime_refresh")
+
+    log_file = "artifacts/realtime_log.csv"
+
+    if os.path.exists(log_file):
+        df = pd.read_csv(log_file)
+
+        if len(df) > 0:
+            df = df.tail(20)   # last 20 packets
+            st.dataframe(df, use_container_width=True)
+        else:
+            st.warning("Log file is empty")
+    else:
+        st.error("Real-time log file not found")
+
 
 
 # ============================================================
