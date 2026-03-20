@@ -5,3 +5,10 @@ backgroundColor="#0b0f17"
 secondaryBackgroundColor="#111827"
 textColor="#d7f3ff"
 font="sans serif"
+
+
+[server]
+headless = true
+
+[runner]
+python_version = "3.11"
