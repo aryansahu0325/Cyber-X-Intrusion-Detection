@@ -90,7 +90,7 @@ Dataset link (Google Drive):
 
 ## 🖥️ Streamlit App (Live Intrusion Detection)
 
-Run the dashboard:
+Run the dashboard: https://cyber-x-intrusion-detection-aryan-sahu.streamlit.app/
 
 streamlit run app.py
 Features:
@@ -109,14 +109,6 @@ Logistic Regression	84.7%	82%	83%	82%
 Random Forest	96.1%	95%	96%	96%
 Gradient Boosting	94.3%	93%	94%	94%
 XGBoost	97.5%	97%	98%	97%
-
-(Replace these with real values later)
-
-📦 Installation
-Clone the project:
-git clone https://github.com/SpringBoardMentor193s/SentinelNet_Oct_Batch.git
-cd NIDS_Project
-pip install -r requirements.txt
 
 🧠 Skills Demonstrated
 Machine Learning
